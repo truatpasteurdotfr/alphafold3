@@ -17,8 +17,8 @@ Please also refer to the Supplementary Information for a detailed description of
 the method.
 
 AlphaFold 3 is also available at
-[alphafoldsever.com](https://alphafoldserver.com) for non-commercial use, though
-with a more limited set of ligands and covalent modifications.
+[alphafoldserver.com](https://alphafoldserver.com) for non-commercial use,
+though with a more limited set of ligands and covalent modifications.
 
 If you have any questions, please contact the AlphaFold team at
 [alphafold@google.com](mailto:alphafold@google.com).
@@ -49,7 +49,7 @@ following input JSON file named `alphafold_input.json`:
         "id": ["A", "B"],
         "sequence": "GMRESYANENQFGFKTINSDIHKIVIVGGYGKLGGLFARYLRASGYPISILDREDWAVAESILANADVVIVSVPINLTLETIERLKPYLTENMLLADLTSVKREPLAKMLEVHTGAVLGLHPMFGADIASMAKQVVVRCDGRFPERYEWLLEQIQIWGAKIYQTNATEHDHNMTYIQALRHFSTFANGLHLSKQPINLANLLALSSPIYRLELAMIGRLFAQDAELYADIIMDKSENLAVIETLKQTYDEALTFFENNDRQGFIDAFHKVRDWFGDYSEQFLKESRQLLQQANDLKQG"
       }
-    },
+    }
   ],
   "modelSeeds": [1],
   "dialect": "alphafold3",
@@ -67,11 +67,21 @@ docker run -it \
     --volume <DATABASES_DIR>:/root/public_databases \
     --gpus all \
     alphafold3 \
-python run_alphafold.py \
+    python run_alphafold.py \
     --json_path=/root/af_input/fold_input.json \
     --model_dir=/root/models \
     --output_dir=/root/af_output
 ```
+
+There are various flags that you can pass to the `run_alphafold.py` command, to
+list them all run `python run_alphafold.py --help`. Two fundamental flags that
+control which parts AlphaFold 3 will run are:
+
+*   `--run_data_pipeline` (defaults to `true`): whether to run the data
+    pipeline, i.e. genetic and template search. This part is CPU-only, time
+    consuming and could be run on a machine without a GPU.
+*   `--run_inference` (defaults to `true`): whether to run the inference. This
+    part requires a GPU.
 
 ## AlphaFold 3 Input
 
@@ -102,7 +112,7 @@ model parameters or outputs produced by those should cite:
 
 ```bibtex
 @article{Abramson2024,
-  author = {Abramson, Josh and Adler, Jonas and Dunger, Jack and Evans, Richard and Green, Tim and Pritzel, Alexander and Ronneberger, Olaf and Willmore, Lindsay and Ballard, Andrew J. and Bambrick, Joshua and Bodenstein, Sebastian W. and Evans, David A. and Hung, Chia-Chun and O’Neill, Michael and Reiman, David and Tunyasuvunakool, Kathryn and Wu, Zachary and Žemgulytė, Akvilė and Arvaniti, Eirini and Beattie, Charles and Bertolli, Ottavia and Bridgland, Alex and Cherepanov, Alexey and Congreve, Miles and Cowen-Rivers, Alexander I. and Cowie, Andrew and Figurnov, Michael and Fuchs, Fabian B. and Gladman, Hannah and Jain, Rishub and Khan, Yousuf A. and Low, Caroline M. R. and Perlin, Kuba and Potapenko, Anna and Savy, Pascal and Singh, Sukhdeep and Stecula, Adrian and Thillaisundaram, Ashok and Tong, Catherine and Yakneen, Sergei and Zhong, Ellen D. and Zielinski, Michal and Žídek, Augustin and Bapst, Victor and Kohli, Pushmeet and Jaderberg, Max and Hassabis, Demis and Jumper, John M.},
+  author  = {Abramson, Josh and Adler, Jonas and Dunger, Jack and Evans, Richard and Green, Tim and Pritzel, Alexander and Ronneberger, Olaf and Willmore, Lindsay and Ballard, Andrew J. and Bambrick, Joshua and Bodenstein, Sebastian W. and Evans, David A. and Hung, Chia-Chun and O’Neill, Michael and Reiman, David and Tunyasuvunakool, Kathryn and Wu, Zachary and Žemgulytė, Akvilė and Arvaniti, Eirini and Beattie, Charles and Bertolli, Ottavia and Bridgland, Alex and Cherepanov, Alexey and Congreve, Miles and Cowen-Rivers, Alexander I. and Cowie, Andrew and Figurnov, Michael and Fuchs, Fabian B. and Gladman, Hannah and Jain, Rishub and Khan, Yousuf A. and Low, Caroline M. R. and Perlin, Kuba and Potapenko, Anna and Savy, Pascal and Singh, Sukhdeep and Stecula, Adrian and Thillaisundaram, Ashok and Tong, Catherine and Yakneen, Sergei and Zhong, Ellen D. and Zielinski, Michal and Žídek, Augustin and Bapst, Victor and Kohli, Pushmeet and Jaderberg, Max and Hassabis, Demis and Jumper, John M.},
   journal = {Nature},
   title   = {Accurate structure prediction of biomolecular interactions with AlphaFold 3},
   year    = {2024},
