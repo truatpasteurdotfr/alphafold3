@@ -66,6 +66,17 @@ them for numerical accuracy and throughput efficiency:
 -   1 NVIDIA A100 (80 GB)
 -   1 NVIDIA H100 (80 GB)
 
+We compare compile-free inference timings of both configurations in the
+following table:
+
+Num Tokens | 1 A100 80 GB (seconds) | 1 H100 80 GB (seconds)
+:--------- | ---------------------: | ---------------------:
+1024       | 62                     | 34
+2048       | 275                    | 144
+3072       | 703                    | 367
+4096       | 1434                   | 774
+5120       | 2547                   | 1416
+
 ### Other Hardware Configurations
 
 #### NVIDIA A100 (40 GB)
@@ -87,12 +98,26 @@ AlphaFold 3 can run on inputs of size up to 4,352 tokens on a single NVIDIA A100
 While numerically accurate, this configuration will have lower throughput
 compared to the set up on the NVIDIA A100 (80 GB), due to less available memory.
 
-#### NVIDIA V100 (16 GB)
+#### NVIDIA P100
 
-While you can run AlphaFold 3 on sequences up to 1,280 tokens on a single NVIDIA
-V100 using the flag `--flash_attention_implementation=xla` in
-`run_alphafold.py`, this configuration has not been tested for numerical
-accuracy or throughput efficiency, so please proceed with caution.
+AlphaFold 3 can run on inputs of size up to 1,024 tokens on a single NVIDIA P100
+with no configuration changes needed.
+
+#### NVIDIA V100
+
+There are known issues with V100 devices. See
+[this Issue](https://github.com/google-deepmind/alphafold3/issues/59) for
+tracking.
+
+#### Other devices
+
+There are known issues with CUDA Capability 7.x devices. See
+[this Issue](https://github.com/google-deepmind/alphafold3/issues/59) for
+tracking.
+
+CUDA Capability 6.x and 8.x devices other than those listed explicitly here are
+believed to work for AlphaFold 3, but large-scale testing has only been
+performed for the devices mentioned above.
 
 ## Compilation Buckets
 
