@@ -40,6 +40,7 @@ def featurise_input(
     ccd: chemical_components.Ccd,
     buckets: Sequence[int] | None,
     max_template_date: datetime.date | None = None,
+    conformer_max_iterations: int | None = None,
     verbose: bool = False,
 ) -> Sequence[features.BatchDict]:
   """Featurise the folding input.
@@ -54,6 +55,8 @@ def featurise_input(
       is more than the largest bucket size.
     max_template_date: Optional max template date to prevent data leakage in
       validation.
+    conformer_max_iterations: Optional override for maximum number of iterations
+      to run for RDKit conformer search.
     verbose: Whether to print progress messages.
 
   Returns:
@@ -64,7 +67,9 @@ def featurise_input(
   # Set up data pipeline for single use.
   data_pipeline = pipeline.WholePdbPipeline(
       config=pipeline.WholePdbPipeline.Config(
-          buckets=buckets, max_template_date=max_template_date
+          buckets=buckets,
+          max_template_date=max_template_date,
+          conformer_max_iterations=conformer_max_iterations,
       ),
   )
 
@@ -72,7 +77,7 @@ def featurise_input(
   for rng_seed in fold_input.rng_seeds:
     featurisation_start_time = time.time()
     if verbose:
-      print(f'Featurising {fold_input.name} with rng_seed {rng_seed}.')
+      print(f'Featurising data with seed {rng_seed}.')
     batch = data_pipeline.process_item(
         fold_input=fold_input,
         ccd=ccd,
@@ -81,8 +86,8 @@ def featurise_input(
     )
     if verbose:
       print(
-          f'Featurising {fold_input.name} with rng_seed {rng_seed} '
-          f'took {time.time() - featurisation_start_time:.2f} seconds.'
+          f'Featurising data with seed {rng_seed} took'
+          f' {time.time() - featurisation_start_time:.2f} seconds.'
       )
     batches.append(batch)
 

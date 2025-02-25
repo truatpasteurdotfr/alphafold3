@@ -132,7 +132,7 @@ class DataPipelineTest(test_utils.StructureTestCase):
         / 'test_data/miniature_databases/rnacentral_active_seq_id_90_cov_80_linclust__subsampled_1000.fasta'
     ).path()
     pdb_database_path = testing_data.Data(
-        resources.ROOT / 'data/testdata/templates_v2/ww_pdb'
+        resources.ROOT / 'test_data/miniature_databases/pdb_mmcif'
     ).path()
     seqres_database_path = testing_data.Data(
         resources.ROOT
@@ -162,14 +162,14 @@ class DataPipelineTest(test_utils.StructureTestCase):
         'sequences': [
             {
                 'protein': {
-                    'id': 'A',
+                    'id': 'P',
                     'sequence': 'SEFEKLRQTGDELVQAFQRLREIFDKGDDDSLEQVLEEIEELIQKHRQLFDNRQEAADTEAAKQGDQWVQLFQRFREAIDKGDKDSLEQLLEELEQALQKIRELAEKKN',
                     'modifications': [],
                     'unpairedMsa': None,
                     'pairedMsa': None,
                 }
             },
-            {'ligand': {'id': 'B', 'ccdCodes': ['7BU']}},
+            {'ligand': {'id': 'LL', 'ccdCodes': ['7BU']}},
         ],
         'dialect': folding_input.JSON_DIALECT,
         'version': folding_input.JSON_VERSION,
@@ -209,6 +209,7 @@ class DataPipelineTest(test_utils.StructureTestCase):
         ccd=chemical_components.cached_ccd(),
         buckets=None,
     )
+    del featurised_example[0]['ref_pos']  # Depends on specific RDKit version.
 
     with _output('featurised_example.pkl') as (_, output):
       output.write(pickle.dumps(featurised_example))
@@ -223,7 +224,7 @@ class DataPipelineTest(test_utils.StructureTestCase):
 
   def test_write_input_json(self):
     fold_input = folding_input.Input.from_json(self._test_input_json)
-    output_dir = self.create_tempdir()
+    output_dir = self.create_tempdir().full_path
     run_alphafold.write_fold_input_json(fold_input, output_dir)
     with open(
         os.path.join(output_dir, f'{fold_input.sanitised_name()}_data.json'),
@@ -235,7 +236,7 @@ class DataPipelineTest(test_utils.StructureTestCase):
 
   def test_process_fold_input_runs_only_data_pipeline(self):
     fold_input = folding_input.Input.from_json(self._test_input_json)
-    output_dir = self.create_tempdir()
+    output_dir = self.create_tempdir().full_path
     run_alphafold.process_fold_input(
         fold_input=fold_input,
         data_pipeline_config=self._data_pipeline_config,
