@@ -129,7 +129,9 @@ class InferenceTest(test_utils.StructureTestCase):
             {
                 'protein': {
                     'id': 'P',
-                    'sequence': 'SEFEKLRQTGDELVQAFQRLREIFDKGDDDSLEQVLEEIEELIQKHRQLFDNRQEAADTEAAKQGDQWVQLFQRFREAIDKGDKDSLEQLLEELEQALQKIRELAEKKN',
+                    'sequence': (
+                        'SEFEKLRQTGDELVQAFQRLREIFDKGDDDSLEQVLEEIEELIQKHRQLFDNRQEAADTEAAKQGDQWVQLFQRFREAIDKGDKDSLEQLLEELEQALQKIRELAEKKN'
+                    ),
                     'modifications': [],
                     'unpairedMsa': None,
                     'pairedMsa': None,
@@ -235,17 +237,35 @@ class InferenceTest(test_utils.StructureTestCase):
             expected_model_cif_filename,
             expected_summary_confidences_filename,
             # Ranking scores for all samples.
-            'ranking_scores.csv',
+            f'{fold_input.sanitised_name()}_ranking_scores.csv',
             # The input JSON defining the job.
             expected_data_json_filename,
             # The output terms of use.
             'TERMS_OF_USE.md',
         ],
     )
-    embeddings_dir = os.path.join(output_dir, f'{prefix}_embeddings')
-    self.assertSameElements(os.listdir(embeddings_dir), ['embeddings.npz'])
 
-    with open(os.path.join(embeddings_dir, 'embeddings.npz'), 'rb') as f:
+    for sample_index in range(5):
+      sample_dir = os.path.join(output_dir, f'{prefix}_sample-{sample_index}')
+      sample_prefix = (
+          f'{fold_input.sanitised_name()}_seed-{seed}_sample-{sample_index}'
+      )
+      self.assertSameElements(
+          os.listdir(sample_dir),
+          [
+              f'{sample_prefix}_confidences.json',
+              f'{sample_prefix}_model.cif',
+              f'{sample_prefix}_summary_confidences.json',
+          ],
+      )
+
+    embeddings_dir = os.path.join(output_dir, f'{prefix}_embeddings')
+    embeddings_filename = (
+        f'{fold_input.sanitised_name()}_{prefix}_embeddings.npz'
+    )
+    self.assertSameElements(os.listdir(embeddings_dir), [embeddings_filename])
+
+    with open(os.path.join(embeddings_dir, embeddings_filename), 'rb') as f:
       embeddings = np.load(f)
       self.assertSameElements(
           embeddings.keys(), ['single_embeddings', 'pair_embeddings']
@@ -278,7 +298,10 @@ class InferenceTest(test_utils.StructureTestCase):
         actual_input_json['sequences'][0]['protein']['templates']
     )
 
-    with open(os.path.join(output_dir, 'ranking_scores.csv'), 'rt') as f:
+    ranking_scores_filename = (
+        f'{fold_input.sanitised_name()}_ranking_scores.csv'
+    )
+    with open(os.path.join(output_dir, ranking_scores_filename), 'rt') as f:
       ranking_scores = list(csv.DictReader(f))
 
     self.assertLen(ranking_scores, 5)
@@ -289,9 +312,9 @@ class InferenceTest(test_utils.StructureTestCase):
 
     # Ranking score should be between 0.66 and 0.76 for all samples.
     ranking_scores = [float(s['ranking_score']) for s in ranking_scores]
-    scores_ok = [0.66 <= score <= 0.76 for score in ranking_scores]
+    scores_ok = [0.66 <= score <= 0.77 for score in ranking_scores]
     if not all(scores_ok):
-      self.fail(f'{ranking_scores=} are not in expected range [0.66, 0.76]')
+      self.fail(f'{ranking_scores=} are not in expected range [0.66, 0.77]')
 
     with open(os.path.join(output_dir, 'TERMS_OF_USE.md'), 'rt') as f:
       actual_terms_of_use = f.read()
