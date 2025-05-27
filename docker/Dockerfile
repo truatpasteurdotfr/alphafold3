@@ -16,14 +16,14 @@ FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 # git is required for pyproject.toml toolchain's use of CMakeLists.txt.
 # gcc, g++, make are required for compiling hmmer and AlphaFold 3 libaries.
 # zlib is a required dependency of AlphaFold 3.
-RUN apt update --quiet \
-    && apt install --yes --quiet software-properties-common \
-    && apt install --yes --quiet git wget gcc g++ make zlib1g-dev zstd
+RUN apt-get update --quiet \
+    && apt-get install --yes --quiet software-properties-common \
+    && apt-get install --yes --quiet git wget gcc g++ make zlib1g-dev zstd
 
 # Get apt repository of specific Python versions. Then install Python. Tell APT
 # this isn't an interactive TTY to avoid timezone prompt when installing.
 RUN add-apt-repository ppa:deadsnakes/ppa \
-    && DEBIAN_FRONTEND=noninteractive apt install --yes --quiet python3.11 python3-pip python3.11-venv python3.11-dev
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --quiet python3.11 python3-pip python3.11-venv python3.11-dev
 RUN python3.11 -m venv /alphafold3_venv
 ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
@@ -32,10 +32,14 @@ ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
 RUN pip3 install --upgrade pip
 
 # Install HMMER. Do so before copying the source code, so that docker can cache
-# the image layer containing HMMER. Alternatively, you could also install it 
-# using `apt-get install hmmer` instead of bulding it from source.
+# the image layer containing HMMER. Alternatively, you could also install it
+# using `apt-get install hmmer` instead of bulding it from source, but we want
+# to have control over the exact version of HMMER. Also note that eddylab.org
+# unfortunately doesn't support HTTPS and the tar file published on GitHub is
+# is explicitly not recommended to be used for building from source.
 RUN mkdir /hmmer_build /hmmer ; \
     wget http://eddylab.org/software/hmmer/hmmer-3.4.tar.gz --directory-prefix /hmmer_build ; \
+    (cd /hmmer_build && echo "ca70d94fd0cf271bd7063423aabb116d42de533117343a9b27a65c17ff06fbf3 hmmer-3.4.tar.gz" | sha256sum --check) && \
     (cd /hmmer_build && tar zxf hmmer-3.4.tar.gz && rm hmmer-3.4.tar.gz) ; \
     (cd /hmmer_build/hmmer-3.4 && ./configure --prefix /hmmer) ; \
     (cd /hmmer_build/hmmer-3.4 && make -j) ; \
