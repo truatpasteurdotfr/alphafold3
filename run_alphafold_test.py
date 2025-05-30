@@ -28,7 +28,6 @@ from alphafold3.common import resources
 from alphafold3.common.testing import data as testing_data
 from alphafold3.data import pipeline
 from alphafold3.model.scoring import alignment
-from alphafold3.structure import test_utils
 import jax
 import numpy as np
 
@@ -64,7 +63,7 @@ def _generate_diff(actual: str, expected: str) -> str:
   )
 
 
-class InferenceTest(test_utils.StructureTestCase):
+class InferenceTest(parameterized.TestCase):
   """Test AlphaFold 3 inference."""
 
   def setUp(self):
