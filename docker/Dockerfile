@@ -29,7 +29,7 @@ ENV PATH="/hmmer/bin:/alphafold3_venv/bin:$PATH"
 # Update pip to the latest version. Not necessary in Docker, but good to do when
 # this is used as a recipe for local installation since we rely on new pip
 # features for secure installs.
-RUN pip3 install --upgrade pip
+RUN pip3 install --no-cache-dir --upgrade pip
 
 # Install HMMER. Do so before copying the source code, so that docker can cache
 # the image layer containing HMMER. Alternatively, you could also install it
@@ -53,8 +53,8 @@ COPY . /app/alphafold
 WORKDIR /app/alphafold
 
 # Install the Python dependencies AlphaFold 3 needs.
-RUN pip3 install -r dev-requirements.txt
-RUN pip3 install --no-deps .
+RUN pip3 install --no-cache-dir -r dev-requirements.txt \
+    && pip3 install --no-cache-dir --no-deps .
 # Build chemical components database (this binary was installed by pip).
 RUN build_data
 
