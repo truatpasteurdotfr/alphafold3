@@ -96,7 +96,6 @@ def _per_atom_conditioning(
   return act, pair_act
 
 
-@jax.tree_util.register_dataclass
 @dataclasses.dataclass(frozen=True)
 class AtomCrossAttEncoderOutput:
   token_act: jnp.ndarray  # (num_tokens, ch)
@@ -106,6 +105,13 @@ class AtomCrossAttEncoderOutput:
   keys_mask: jnp.ndarray  # (num_subsets, num_keys)
   keys_single_cond: jnp.ndarray  # (num_subsets, num_keys, ch)
   pair_cond: jnp.ndarray  # (num_subsets, num_queries, num_keys, ch)
+
+
+jax.tree_util.register_dataclass(
+    AtomCrossAttEncoderOutput,
+    data_fields=[f.name for f in dataclasses.fields(AtomCrossAttEncoderOutput)],
+    meta_fields=[],
+)
 
 
 def atom_cross_att_encoder(
