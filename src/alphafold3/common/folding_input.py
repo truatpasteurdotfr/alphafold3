@@ -783,11 +783,17 @@ class Ligand:
     if json_dict.get('ccdCodes') and json_dict.get('smiles'):
       raise ValueError(
           'Ligand cannot have both CCD code and SMILES set at the same time, '
-          f'got CCD: {json_dict["ccdCode"]} and SMILES: {json_dict["smiles"]}'
+          f'got CCD: {json_dict["ccdCodes"]} and SMILES: {json_dict["smiles"]}'
       )
 
     if 'ccdCodes' in json_dict:
-      return cls(id=seq_id or json_dict['id'], ccd_ids=json_dict['ccdCodes'])
+      ccd_codes = json_dict['ccdCodes']
+      if not isinstance(ccd_codes, (list, tuple)):
+        raise ValueError(
+            'CCD codes must be a list of strings, got '
+            f'{type(ccd_codes).__name__} instead: {ccd_codes}'
+        )
+      return cls(id=seq_id or json_dict['id'], ccd_ids=ccd_codes)
     elif 'smiles' in json_dict:
       return cls(id=seq_id or json_dict['id'], smiles=json_dict['smiles'])
     else:
