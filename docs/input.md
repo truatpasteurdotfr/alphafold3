@@ -919,6 +919,7 @@ certain fields and the sequences are not biologically meaningful.
           {"ptmType": "P1L", "ptmPosition": 5}
         ],
         "unpairedMsa": ...,
+        "pairedMsa": ""
       }
     },
     {
