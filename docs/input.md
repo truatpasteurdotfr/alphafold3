@@ -404,10 +404,11 @@ the paper.
 
 RNA `unpairedMsa` can be either:
 
-1.  Unset (or set explicitly to `null`). AlphaFold 3 won't build MSA for this
-    RNA chain.
-2.  Set to an empty string (`""`). AlphaFold 3 won't build MSA and will run
-    MSA-free for this RNA chain.
+1.  Unset (or set explicitly to `null`). AlphaFold 3 will build MSA for this RNA
+    chain automatically. This is the recommended option.
+2.  Set to an empty string (`""`). AlphaFold 3 won't build the MSA for this RNA
+    chain and the MSA input to the model will be just the RNA chain (equivalent
+    to running MSA-free for this RNA chain).
 3.  Set to a non-empty A3M string. AlphaFold 3 will use the provided MSA for
     this RNA chain.
 
@@ -418,7 +419,7 @@ unpaired MSA (see [MSA Pairing](#msa-pairing) below for more details).
 
 The following combinations are valid for a given protein chain:
 
-1.  Both `unpairedMsa` and `pairedMsa` fields are unset (or explicitly set to
+1.  Both `unpairedMsa` and `pairedMsa` fields are unset (or set explicitly to
     `null`), AlphaFold 3 will build both MSAs automatically. This is the
     recommended option.
 2.  The `unpairedMsa` is set to to a non-empty A3M string, `pairedMsa` set to an
