@@ -345,6 +345,10 @@ class ProteinChain:
     else:
       templates = []
       for raw_template in raw_templates:
+        _validate_keys(
+            raw_template.keys(),
+            {'mmcif', 'mmcifPath', 'queryIndices', 'templateIndices'},
+        )
         mmcif = raw_template.get('mmcif', None)
         mmcif_path = raw_template.get('mmcifPath', None)
         if mmcif and mmcif_path:
