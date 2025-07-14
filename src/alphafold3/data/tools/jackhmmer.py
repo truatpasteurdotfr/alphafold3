@@ -73,6 +73,13 @@ class Jackhmmer(msa_tool.MsaTool):
     self.filter_f2 = filter_f2
     self.filter_f3 = filter_f3
 
+    # If Jackhmmer supports the --seq_limit flag (via our patch), use it to
+    # prevent writing out redundant sequences and increasing peak memory usage.
+    # If not, the Jackhmmer will be run without the --seq_limit flag.
+    self.supports_seq_limit = subprocess_utils.jackhmmer_seq_limit_supported(
+        self.binary_path
+    )
+
   def query(self, target_sequence: str) -> msa_tool.MsaToolResult:
     """Queries the database using Jackhmmer."""
     logging.info(
@@ -115,6 +122,9 @@ class Jackhmmer(msa_tool.MsaTool):
 
       if self.z_value is not None:
         cmd_flags.extend(['-Z', str(self.z_value)])
+
+      if self.max_sequences is not None and self.supports_seq_limit:
+        cmd_flags.extend(['--seq_limit', str(self.max_sequences)])
 
       cmd = (
           [self.binary_path]
