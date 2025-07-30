@@ -928,9 +928,9 @@ class Input:
 
   def sanitised_name(self) -> str:
     """Returns sanitised version of the name that can be used as a filename."""
-    lower_spaceless_name = self.name.lower().replace(' ', '_')
-    allowed_chars = set(string.ascii_lowercase + string.digits + '_-.')
-    return ''.join(l for l in lower_spaceless_name if l in allowed_chars)
+    spaceless_name = self.name.replace(' ', '_')
+    allowed_chars = set(string.ascii_letters + string.digits + '_-.')
+    return ''.join(l for l in spaceless_name if l in allowed_chars)
 
   @classmethod
   def from_alphafoldserver_fold_job(cls, fold_job: Mapping[str, Any]) -> Self:
