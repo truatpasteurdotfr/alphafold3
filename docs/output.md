@@ -3,10 +3,11 @@
 ## Output Directory Structure
 
 For every input job, AlphaFold 3 writes all its outputs in a directory called by
-the sanitized version of the job name. E.g. for job name "My first fold (test)",
-AlphaFold 3 will write its outputs in a directory called `my_first_fold_test`.
-If such directory already exists, AlphaFold 3 will append a timestamp to the
-directory name to avoid overwriting existing data.
+the sanitized version of the job name. E.g. for job name "My first fold (TEST)",
+AlphaFold 3 will write its outputs in a directory called `My_first_fold_TEST`
+(the case is respected). If such directory already exists, AlphaFold 3 will
+append a timestamp to the directory name to avoid overwriting existing data
+unless `--force_output_dir` is passed.
 
 The following structure is used within the output directory:
 
