@@ -150,8 +150,9 @@ absl::StatusOr<std::vector<absl::string_view>> TokenizeInternal(
   return tokens;
 }
 
+// Returns whether the token doesn't need any quoting. This is true if the token
+// isn't empty and contains only safe characters [A-Za-z0-9.?-].
 bool IsTrivialToken(const absl::string_view value) {
-  // Returns true if the token doesn't need any quoting and isn't multiline.
   if (value.empty()) {
     return false;
   }
@@ -161,8 +162,9 @@ bool IsTrivialToken(const absl::string_view value) {
   });
 }
 
+// Returns whether the token needs to be a multiline token. This happens if it
+// has a newline or both single and double quotes.
 bool IsMultiLineToken(const absl::string_view value) {
-  // A token is multiline if it has a newline or both single and double quotes.
   bool has_single_quotes = false;
   bool has_double_quotes = false;
   for (const char c : value) {
