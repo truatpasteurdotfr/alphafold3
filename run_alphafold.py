@@ -228,9 +228,11 @@ _JAX_COMPILATION_CACHE_DIR = flags.DEFINE_string(
 _GPU_DEVICE = flags.DEFINE_integer(
     'gpu_device',
     0,
-    'Optional override for the GPU device to use for inference. Defaults to the'
-    ' 1st GPU on the system. Useful on multi-GPU systems to pin each run to a'
-    ' specific GPU.',
+    'Optional override for the GPU device to use for inference, uses zero-based'
+    ' indexing. Defaults to the 0th GPU on the system. Useful on multi-GPU'
+    ' systems to pin each run to a specific GPU. Note that if GPUs are already'
+    ' pre-filtered by the environment (e.g. by using CUDA_VISIBLE_DEVICES),'
+    ' this flag refers to the GPU index after the filtering has been done.',
 )
 _BUCKETS = flags.DEFINE_list(
     'buckets',
