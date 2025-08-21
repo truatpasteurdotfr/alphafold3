@@ -340,6 +340,16 @@ struct GroupedKeys {
   int value_size;
 };
 
+absl::Status CheckLoopColumnSizes(int num_loop_keys, int num_loop_values) {
+  if ((num_loop_keys > 0) && (num_loop_values % num_loop_keys != 0)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "The number of values (%d) in a loop is not a multiple of the "
+        "number of the loop's columns (%d)",
+        num_loop_values, num_loop_keys));
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
@@ -380,7 +390,12 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
        ++token_itr) {
     auto token = *token_itr;
     if (absl::EqualsIgnoreCase(token, "loop_")) {
-      // A new loop started, get rid of old loop's data.
+      // A new loop started, check the previous loop and get rid of its data.
+      absl::Status loop_status =
+          CheckLoopColumnSizes(num_loop_keys, loop_token_index);
+      if (!loop_status.ok()) {
+        return loop_status;
+      }
       loop_flag = true;
       loop_column_values.clear();
       loop_token_index = 0;
@@ -432,6 +447,11 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
       cif[key].emplace_back(token);
       key = "";
     }
+  }
+  absl::Status loop_status =
+      CheckLoopColumnSizes(num_loop_keys, loop_token_index);
+  if (!loop_status.ok()) {
+    return loop_status;
   }
   return CifDict(std::move(cif));
 }
