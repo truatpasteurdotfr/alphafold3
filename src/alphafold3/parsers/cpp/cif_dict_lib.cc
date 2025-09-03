@@ -134,6 +134,9 @@ absl::StatusOr<std::vector<absl::string_view>> TokenizeInternal(
         line_num++;
         if (!multiline.empty() && multiline[0] == ';') {
           break;
+        } else if (line_num == lines.size()) {
+          return absl::InvalidArgumentError(
+              "Last multiline token is not terminated by a semicolon.");
         }
         multiline_tokens.push_back(multiline);
       }
@@ -374,6 +377,10 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
     return absl::InvalidArgumentError(
         "The CIF file does not start with the data_ field.");
   }
+  if (first_token.empty()) {
+    return absl::InvalidArgumentError(
+        "The CIF file does not contain a data block name.");
+  }
   cif["data_"].emplace_back(first_token);
 
   // Counters for CIF loop_ regions.
@@ -413,7 +420,12 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
           loop_flag = false;
         } else {
           // We are in the keys (column names) section of the loop.
-          auto& columns = cif[token];
+          auto [it, inserted] = cif.try_emplace(token);
+          if (!inserted) {
+            return absl::InvalidArgumentError(
+                absl::StrCat("Duplicate loop key: '", token, "'"));
+          }
+          auto& columns = it->second;
           columns.clear();
 
           // Heuristic: _atom_site is typically the largest table in an mmCIF
@@ -448,7 +460,12 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
             absl::StrCat("Key '", key, "' does not start with an underscore."));
       }
     } else {
-      cif[key].emplace_back(token);
+      auto [it, inserted] = cif.try_emplace(key);
+      if (!inserted) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Duplicate key: '", key, "'"));
+      }
+      (it->second).emplace_back(token);
       key = "";
     }
   }
