@@ -443,6 +443,10 @@ absl::StatusOr<CifDict> CifDict::FromString(absl::string_view cif_string) {
     }
     if (key.empty()) {
       key = token;
+      if (!absl::StartsWith(key, "_")) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Key '", key, "' does not start with an underscore."));
+      }
     } else {
       cif[key].emplace_back(token);
       key = "";
