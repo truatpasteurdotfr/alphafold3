@@ -24,7 +24,6 @@ import csv
 import dataclasses
 import datetime
 import functools
-import multiprocessing
 import os
 import pathlib
 import shutil
@@ -178,14 +177,16 @@ _SEQRES_DATABASE_PATH = flags.DEFINE_string(
 # Number of CPUs to use for MSA tools.
 _JACKHMMER_N_CPU = flags.DEFINE_integer(
     'jackhmmer_n_cpu',
-    min(multiprocessing.cpu_count(), 8),
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    min(len(os.sched_getaffinity(0)), 8),
     'Number of CPUs to use for Jackhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
 _NHMMER_N_CPU = flags.DEFINE_integer(
     'nhmmer_n_cpu',
-    min(multiprocessing.cpu_count(), 8),
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    min(len(os.sched_getaffinity(0)), 8),
     'Number of CPUs to use for Nhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
