@@ -449,7 +449,7 @@ def predict_structure(
 
   print(f'Featurising data with {len(fold_input.rng_seeds)} seed(s)...')
   featurisation_start_time = time.time()
-  ccd = chemical_components.cached_ccd(user_ccd=fold_input.user_ccd)
+  ccd = chemical_components.Ccd(user_ccd=fold_input.user_ccd)
   featurised_examples = featurisation.featurise_input(
       fold_input=fold_input,
       buckets=buckets,
