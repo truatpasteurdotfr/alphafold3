@@ -1209,11 +1209,11 @@ def _maybe_add_missing_scheme_tables(
           inplace=False,
       )
       update['_pdbx_poly_seq_scheme.asym_id'] = res_asym_ids
+      update['_pdbx_poly_seq_scheme.pdb_strand_id'] = res_strand_ids
       update['_pdbx_poly_seq_scheme.pdb_seq_num'] = auth_seq_ids[res_mask]
       update['_pdbx_poly_seq_scheme.pdb_ins_code'] = pdb_ins_codes[res_mask]
       update['_pdbx_poly_seq_scheme.seq_id'] = label_seq_ids[res_mask]
       update['_pdbx_poly_seq_scheme.mon_id'] = label_comp_ids[res_mask]
-      update['_pdbx_poly_seq_scheme.pdb_strand_id'] = res_strand_ids
 
   required_nonpoly_scheme_cols = (
       '_pdbx_nonpoly_scheme.mon_id',
@@ -1612,10 +1612,11 @@ def get_tables(
   except KeyError as e:
     raise ValueError(
         'Lookup for the following atom from the _atom_site table failed: '
-        f'(atom_id, auth_seq_id, res_name, ins_code)={e}. This is '
-        'likely due to a known issue with some multi-model mmCIFs that only '
-        'match the first model in _atom_site table to the _pdbx_poly_scheme, '
-        '_pdbx_nonpoly_scheme, or _pdbx_branch_scheme tables.'
+        f'(label_asym_id, auth_seq_id, res_name, ins_code)={e}. This typically '
+        'indicates that the _pdbx_poly_seq_scheme, _pdbx_nonpoly_scheme, or '
+        '_pdbx_branch_scheme tables do not have data for all residues present '
+        'in the _atom_site table. It could also be due to a known issue with '
+        'a small number of multi-model mmCIFs.'
     ) from e
 
   # The residue ID will be shared for all atoms within that residue.
