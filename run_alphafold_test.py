@@ -327,11 +327,17 @@ class InferenceTest(parameterized.TestCase):
         [int(s['sample']) for s in ranking_scores], [0, 1, 2, 3, 4]
     )
 
-    # Ranking score should be between 0.66 and 0.76 for all samples.
+    # Ranking score should be in the expected range for all samples.
     ranking_scores = [float(s['ranking_score']) for s in ranking_scores]
-    scores_ok = [0.66 <= score <= 0.77 for score in ranking_scores]
+    lower = 0.66
+    upper = 0.77
+    scores_ok = [lower <= score <= upper for score in ranking_scores]
     if not all(scores_ok):
-      self.fail(f'{ranking_scores=} are not in expected range [0.66, 0.77]')
+      printable_scores = [f'{score:.2f}' for score in ranking_scores]
+      self.fail(
+          f'Ranking scores {printable_scores} not in expected range '
+          f'[{lower:.2f}, {upper:.2f}]'
+      )
 
     with open(os.path.join(output_dir, 'TERMS_OF_USE.md'), 'rt') as f:
       actual_terms_of_use = f.read()
