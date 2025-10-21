@@ -221,6 +221,7 @@ def _gated_linear_unit(
       out_shape=jax.ShapeDtypeStruct((m, n), x.dtype) if dst is None else dst,
       input_output_aliases=input_output_aliases,
       compiler_params=compiler_params,
+      backend='triton',
   )(x, weights_projection, weights_gate, dst, epilogue_args)
 
 
