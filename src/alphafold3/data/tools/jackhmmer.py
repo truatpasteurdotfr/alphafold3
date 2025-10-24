@@ -54,30 +54,30 @@ class Jackhmmer(msa_tool.MsaTool):
     Raises:
       RuntimeError: If Jackhmmer binary not found within the path.
     """
-    self.binary_path = binary_path
-    self.database_path = database_path
+    self._binary_path = binary_path
+    self._database_path = database_path
 
     subprocess_utils.check_binary_exists(
-        path=self.binary_path, name='Jackhmmer'
+        path=self._binary_path, name='Jackhmmer'
     )
 
-    if not os.path.exists(self.database_path):
+    if not os.path.exists(self._database_path):
       raise ValueError(f'Could not find Jackhmmer database {database_path}')
 
-    self.n_cpu = n_cpu
-    self.n_iter = n_iter
-    self.e_value = e_value
-    self.z_value = z_value
-    self.max_sequences = max_sequences
-    self.filter_f1 = filter_f1
-    self.filter_f2 = filter_f2
-    self.filter_f3 = filter_f3
+    self._n_cpu = n_cpu
+    self._n_iter = n_iter
+    self._e_value = e_value
+    self._z_value = z_value
+    self._max_sequences = max_sequences
+    self._filter_f1 = filter_f1
+    self._filter_f2 = filter_f2
+    self._filter_f3 = filter_f3
 
     # If Jackhmmer supports the --seq_limit flag (via our patch), use it to
     # prevent writing out redundant sequences and increasing peak memory usage.
     # If not, the Jackhmmer will be run without the --seq_limit flag.
-    self.supports_seq_limit = subprocess_utils.jackhmmer_seq_limit_supported(
-        self.binary_path
+    self._supports_seq_limit = subprocess_utils.jackhmmer_seq_limit_supported(
+        self._binary_path
     )
 
   def query(self, target_sequence: str) -> msa_tool.MsaToolResult:
@@ -106,35 +106,35 @@ class Jackhmmer(msa_tool.MsaTool):
           *('-o', '/dev/null'),  # Don't pollute stdout with Jackhmmer output.
           *('-A', output_sto_path),
           '--noali',
-          *('--F1', str(self.filter_f1)),
-          *('--F2', str(self.filter_f2)),
-          *('--F3', str(self.filter_f3)),
-          *('--cpu', str(self.n_cpu)),
-          *('-N', str(self.n_iter)),
+          *('--F1', str(self._filter_f1)),
+          *('--F2', str(self._filter_f2)),
+          *('--F3', str(self._filter_f3)),
+          *('--cpu', str(self._n_cpu)),
+          *('-N', str(self._n_iter)),
       ]
 
       # Report only sequences with E-values <= x in per-sequence output.
-      if self.e_value is not None:
-        cmd_flags.extend(['-E', str(self.e_value)])
+      if self._e_value is not None:
+        cmd_flags.extend(['-E', str(self._e_value)])
 
         # Use the same value as the reporting e-value (`-E` flag).
-        cmd_flags.extend(['--incE', str(self.e_value)])
+        cmd_flags.extend(['--incE', str(self._e_value)])
 
-      if self.z_value is not None:
-        cmd_flags.extend(['-Z', str(self.z_value)])
+      if self._z_value is not None:
+        cmd_flags.extend(['-Z', str(self._z_value)])
 
-      if self.max_sequences is not None and self.supports_seq_limit:
-        cmd_flags.extend(['--seq_limit', str(self.max_sequences)])
+      if self._max_sequences is not None and self._supports_seq_limit:
+        cmd_flags.extend(['--seq_limit', str(self._max_sequences)])
 
       cmd = (
-          [self.binary_path]
+          [self._binary_path]
           + cmd_flags
-          + [input_fasta_path, self.database_path]
+          + [input_fasta_path, self._database_path]
       )
 
       subprocess_utils.run(
           cmd=cmd,
-          cmd_name=f'Jackhmmer ({os.path.basename(self.database_path)})',
+          cmd_name=f'Jackhmmer ({os.path.basename(self._database_path)})',
           log_stdout=False,
           log_stderr=True,
           log_on_process_error=True,
@@ -142,9 +142,9 @@ class Jackhmmer(msa_tool.MsaTool):
 
       with open(output_sto_path) as f:
         a3m = parsers.convert_stockholm_to_a3m(
-            f, max_sequences=self.max_sequences
+            f, max_sequences=self._max_sequences
         )
 
     return msa_tool.MsaToolResult(
-        target_sequence=target_sequence, a3m=a3m, e_value=self.e_value
+        target_sequence=target_sequence, a3m=a3m, e_value=self._e_value
     )
