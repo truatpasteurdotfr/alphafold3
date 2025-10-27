@@ -1,5 +1,36 @@
 # Performance
 
+## Running the Pipeline in Stages
+
+The `run_alphafold.py` script can be executed in stages to optimise resource
+utilisation. This can be useful for:
+
+1.  Splitting the CPU-only data pipeline from model inference (which requires a
+    GPU), to optimise cost and resource usage.
+1.  Generating the JSON output file from the data pipeline only run and then
+    using it for multiple different inference only runs across seeds or across
+    variations of other features (e.g. a ligand or a partner chain).
+1.  Generating the JSON output for multiple individual monomer chains (e.g. for
+    chains A, B, C, D), then running the inference on all possible chain pairs
+    (AB, AC, AD, BC, BD, CD) by creating dimer JSONs by merging the monomer
+    JSONs. By doing this, the MSA and template search need to be run just 4
+    times (once for each chain), instead of 12 times.
+
+### Data Pipeline Only
+
+Launch `run_alphafold.py` with `--norun_inference` to generate Multiple Sequence
+Alignments (MSAs) and templates, without running featurisation and model
+inference. This stage can be quite costly in terms of runtime, CPU, and RAM use.
+The output will be JSON files augmented with MSAs and templates that can then be
+directly used as input for running inference.
+
+### Featurisation and Model Inference Only
+
+Launch `run_alphafold.py` with `--norun_data_pipeline` to skip the data pipeline
+and run only featurisation and model inference. This stage requires the input
+JSON file to contain pre-computed MSAs and templates (or they must be explicitly
+set to empty if you want to run MSA and template free).
+
 ## Data Pipeline
 
 The runtime of the data pipeline (i.e. genetic sequence search and template
@@ -36,37 +67,6 @@ Num Tokens | 1 A100 80 GB (GPU secs) | 16 A100 40 GB (GPU secs) | Improvement
 3072       | 703                     | 2016                     | 2.9×
 4096       | 1434                    | 3648                     | 2.5×
 5120       | 2547                    | 5552                     | 2.2×
-
-## Running the Pipeline in Stages
-
-The `run_alphafold.py` script can be executed in stages to optimise resource
-utilisation. This can be useful for:
-
-1.  Splitting the CPU-only data pipeline from model inference (which requires a
-    GPU), to optimise cost and resource usage.
-1.  Generating the JSON output file from the data pipeline only run and then
-    using it for multiple different inference only runs across seeds or across
-    variations of other features (e.g. a ligand or a partner chain).
-1.  Generating the JSON output for multiple individual monomer chains (e.g. for
-    chains A, B, C, D), then running the inference on all possible chain pairs
-    (AB, AC, AD, BC, BD, CD) by creating dimer JSONs by merging the monomer
-    JSONs. By doing this, the MSA and template search need to be run just 4
-    times (once for each chain), instead of 12 times.
-
-### Data Pipeline Only
-
-Launch `run_alphafold.py` with `--norun_inference` to generate Multiple Sequence
-Alignments (MSAs) and templates, without running featurisation and model
-inference. This stage can be quite costly in terms of runtime, CPU, and RAM use.
-The output will be JSON files augmented with MSAs and templates that can then be
-directly used as input for running inference.
-
-### Featurisation and Model Inference Only
-
-Launch `run_alphafold.py` with `--norun_data_pipeline` to skip the data pipeline
-and run only featurisation and model inference. This stage requires the input
-JSON file to contain pre-computed MSAs and templates (or they must be explicitly
-set to empty if you want to run MSA and template free).
 
 ## Accelerator Hardware Requirements
 
