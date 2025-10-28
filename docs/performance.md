@@ -24,6 +24,42 @@ inference. This stage can be quite costly in terms of runtime, CPU, and RAM use.
 The output will be JSON files augmented with MSAs and templates that can then be
 directly used as input for running inference.
 
+### Pre-computing and reusing MSA and templates
+
+When folding multiple candidate chains with a set of fixed chains (i.e. chains
+that are the same for all the runs), you can optimize the process by computing
+the MSA and templates for the fixed chains only once. The computations for the
+changing candidate chains will still be performed for each run:
+
+1.  Run the AlphaFold 3 data pipeline for the fixed chains using the
+    `--run_inference=false` flag. This step generates a JSON file containing the
+    MSA and template data for these chains.
+2.  When constructing your multimer input JSONs, populate the entries for the
+    fixed chains using the data generated in the previous step.
+    *   For the fixed chains: Specifically, copy the `unpairedMsa`, `pairedMsa`,
+        and `templates` fields from the pre-computed JSON into the multimer
+        input JSON. This prevents these fields from being recomputed.
+    *   For the candidate chains: Leave these fields unset (or `null`) in the
+        multimer input JSON. This will signal the pipeline to compute them
+        dynamically for each run.
+
+This technique can also be extended to efficiently process all combinations of
+*n* first chains and *m* second chains. Instead of performing *n* × *m* full
+computations, you can reduce this to *n* + *m* data pipeline runs.
+
+In this scenario:
+
+1.  Run the data pipeline (step 1 above, with `--run_inference=false`) for all
+    *n* individual first chains and all *m* individual second chains.
+2.  Assemble the dimer input JSONs for each desired pair by combining their
+    respective pre-computed monomer JSONs.
+3.  Run only the inference step on these assembled JSONs using the
+    `--run_data_pipeline=false` flag.
+
+This approach has been discussed in multiple GitHub issues, such as:
+https://github.com/google-deepmind/alphafold3/issues/171 (which links to other
+similar issues).
+
 ### Featurisation and Model Inference Only
 
 Launch `run_alphafold.py` with `--norun_data_pipeline` to skip the data pipeline
