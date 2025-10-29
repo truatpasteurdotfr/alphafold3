@@ -82,6 +82,85 @@ is the number of cores used for each Jackhmmer process times 4. Also note that
 for sequences with deep MSAs, Jackhmmer or Nhmmer may need a substantial amount
 of RAM beyond the recommended 64 GB of RAM.
 
+### Sharded genetic databases
+
+The run time of the genetic database search can be *significantly* sped up by
+splitting the genetic databases if a machine with many CPU cores is used and the
+databases are on very fast SSD or in a RAM-backed filesystem. With this
+technique you can make Jackhmmer/Nhmmer genetic search fully utilize your
+hardware and take advantage of multi-core systems.
+
+Each genetic database with *n* sequences is split into *s* shards, each
+containing roughly *n* / *s* sequences. We recommend splitting the sequences
+between shards randomly to make sure each shard has similar sequence length
+distribution. This could be achieved using standard tools:
+
+1.  Shuffle the sequences in the fasta. This can be done for example by running:
+    `seqkit shuffle --two-pass <db.fasta>`
+2.  Split the shuffled fasta in *s* shards. This can be done for example by
+    running: `seqkit split2 --by-part <s> <db.fasta>`
+
+Make sure the shards names follow this pattern:
+`prefix-<shard_index>-of-<total_shards>`, both `shard_index` and `total_shards`
+having always 5 digits, with leading zeros as needed. The `shard_index` goes
+from 0 to `total_shards - 1`. A file "path" (spec) for a sharded file is
+`prefix@<total_shards>`.
+
+E.g. for a file named `uniprot.fasta` split into 3 shards, the names of the
+shards should be:
+
+*   `uniprot.fasta-00000-of-00003`
+*   `uniprot.fasta-00001-of-00003`
+*   `uniprot.fasta-00002-of-00003`
+
+The file spec for these files is `uniprot.fasta@3`.
+
+Save the total number of sequences in the protein databases, and the total
+number of nucleic bases in the RNA databases – these will be needed later as a
+flag to Jackhmmer/Nhmmer to correctly scale e-values across all shards.
+
+Save the sharded databases on a fast SSD or in a RAM-backed filesystem, then
+launch AlphaFold with the sharded paths instead of normal paths and set the
+Z-values.
+
+For instance with each database sharded into 16 shards:
+
+```bash
+python run_alphafold.py \
+    --small_bfd_database_path="bfd-first_non_consensus_sequences.fasta@64" \
+    --small_bfd_z_value=65984053 \
+    --mgnify_database_path="mgy_clusters_2022_05.fa@512" \
+    --mgnify_z_value=623796864 \
+    --uniprot_cluster_annot_database_path="uniprot_cluster_annot_2021_04.fasta@256" \
+    --uniprot_cluster_annot_z_value=225619586 \
+    --uniref90_database_path="uniref90_2022_05.fasta@128" \
+    --uniref90_z_value=153742194 \
+    --ntrna_database_path="nt_rna_2023_02_23_clust_seq_id_90_cov_80_rep_seq.fasta@256" \
+    --ntrna_z_value=76752.808514 \
+    --rfam_database_path="rfam_14_9_clust_seq_id_90_cov_80_rep_seq.fasta@16" \
+    --rfam_z_value=138.115553 \
+    --rna_central_database_path="rnacentral_active_seq_id_90_cov_80_linclust.fasta@64" \
+    --rna_central_z_value=13271.415730
+    --jackhmmer_n_cpu=2 \
+    --jackhmmer_max_parallel_shards=16 \
+    --nhmmer_n_cpu=2 \
+    --nhmmer_max_parallel_shards=16
+```
+
+This run will utilize (2 CPUs) × (16 max parallel shards) × (4 protein dbs
+searched in parallel) = 128 cores for each protein chain, and (2 CPUs) × (16 max
+parallel shards) × (3 RNA dbs searched in parallel) = 96 cores for each RNA
+chain. Make sure to tune:
+
+*   the Jackhmmer/Nhmmer number of CPUs,
+*   the maximum number of shards searched in parallel,
+*   and the number of shards for each database
+
+so that the memory bandwidth and CPUs on your machine are optimally utilized.
+You should aim for consistent shard sizes across all databases (so e.g. if
+database A is split into 16 shards and is 3× smaller than database B, database B
+should be split into 3 × 16 = 48 shards).
+
 ## Model Inference
 
 Table 8 in the Supplementary Information of the

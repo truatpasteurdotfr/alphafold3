@@ -132,15 +132,36 @@ _SMALL_BFD_DATABASE_PATH = flags.DEFINE_string(
     '${DB_DIR}/bfd-first_non_consensus_sequences.fasta',
     'Small BFD database path, used for protein MSA search.',
 )
+_SMALL_BFD_Z_VALUE = flags.DEFINE_integer(
+    'small_bfd_z_value',
+    None,
+    'The Z-value representing the database size in number of sequences for'
+    ' E-value calculation. Must be set for sharded databases.',
+    lower_bound=0,
+)
 _MGNIFY_DATABASE_PATH = flags.DEFINE_string(
     'mgnify_database_path',
     '${DB_DIR}/mgy_clusters_2022_05.fa',
     'Mgnify database path, used for protein MSA search.',
 )
+_MGNIFY_Z_VALUE = flags.DEFINE_integer(
+    'mgnify_z_value',
+    None,
+    'The Z-value representing the database size in number of sequences for'
+    ' E-value calculation. Must be set for sharded databases.',
+    lower_bound=0,
+)
 _UNIPROT_CLUSTER_ANNOT_DATABASE_PATH = flags.DEFINE_string(
     'uniprot_cluster_annot_database_path',
     '${DB_DIR}/uniprot_all_2021_04.fa',
     'UniProt database path, used for protein paired MSA search.',
+)
+_UNIPROT_CLUSTER_ANNOT_Z_VALUE = flags.DEFINE_integer(
+    'uniprot_cluster_annot_z_value',
+    None,
+    'The Z-value representing the database size in number of sequences for'
+    ' E-value calculation. Must be set for sharded databases.',
+    lower_bound=0,
 )
 _UNIREF90_DATABASE_PATH = flags.DEFINE_string(
     'uniref90_database_path',
@@ -148,20 +169,48 @@ _UNIREF90_DATABASE_PATH = flags.DEFINE_string(
     'UniRef90 database path, used for MSA search. The MSA obtained by '
     'searching it is used to construct the profile for template search.',
 )
+_UNIREF90_Z_VALUE = flags.DEFINE_integer(
+    'uniref90_z_value',
+    None,
+    'The Z-value representing the database size in number of sequences for'
+    ' E-value calculation. Must be set for sharded databases.',
+    lower_bound=0,
+)
 _NTRNA_DATABASE_PATH = flags.DEFINE_string(
     'ntrna_database_path',
     '${DB_DIR}/nt_rna_2023_02_23_clust_seq_id_90_cov_80_rep_seq.fasta',
     'NT-RNA database path, used for RNA MSA search.',
+)
+_NTRNA_Z_VALUE = flags.DEFINE_float(
+    'ntrna_z_value',
+    None,
+    'The Z-value representing the database size in megabases for E-value'
+    ' calculation. Must be set for sharded databases.',
+    lower_bound=0.0,
 )
 _RFAM_DATABASE_PATH = flags.DEFINE_string(
     'rfam_database_path',
     '${DB_DIR}/rfam_14_9_clust_seq_id_90_cov_80_rep_seq.fasta',
     'Rfam database path, used for RNA MSA search.',
 )
+_RFAM_Z_VALUE = flags.DEFINE_float(
+    'rfam_z_value',
+    None,
+    'The Z-value representing the database size in megabases for E-value'
+    ' calculation. Must be set for sharded databases.',
+    lower_bound=0.0,
+)
 _RNA_CENTRAL_DATABASE_PATH = flags.DEFINE_string(
     'rna_central_database_path',
     '${DB_DIR}/rnacentral_active_seq_id_90_cov_80_linclust.fasta',
     'RNAcentral database path, used for RNA MSA search.',
+)
+_RNA_CENTRAL_Z_VALUE = flags.DEFINE_float(
+    'rna_central_z_value',
+    None,
+    'The Z-value representing the database size in megabases for E-value'
+    ' calculation. Must be set for sharded databases.',
+    lower_bound=0.0,
 )
 _PDB_DATABASE_PATH = flags.DEFINE_string(
     'pdb_database_path',
@@ -183,6 +232,14 @@ _JACKHMMER_N_CPU = flags.DEFINE_integer(
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
+_JACKHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
+    'jackhmmer_max_parallel_shards',
+    None,
+    'Maximum number of shards to search against in parallel. If unset, one'
+    ' Jackhmmer instance will be run per shard. Only applicable if the'
+    ' database is sharded.',
+    lower_bound=1,
+)
 _NHMMER_N_CPU = flags.DEFINE_integer(
     'nhmmer_n_cpu',
     # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
@@ -190,6 +247,14 @@ _NHMMER_N_CPU = flags.DEFINE_integer(
     'Number of CPUs to use for Nhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
+)
+_NHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
+    'nhmmer_max_parallel_shards',
+    None,
+    'Maximum number of shards to search against in parallel. If unset, one'
+    ' Nhmmer instance will be run per shard. Only applicable if the'
+    ' database is sharded.',
+    lower_bound=1,
 )
 
 # Data pipeline configuration.
@@ -828,18 +893,27 @@ def main(_):
         hmmsearch_binary_path=_HMMSEARCH_BINARY_PATH.value,
         hmmbuild_binary_path=_HMMBUILD_BINARY_PATH.value,
         small_bfd_database_path=expand_path(_SMALL_BFD_DATABASE_PATH.value),
+        small_bfd_z_value=_SMALL_BFD_Z_VALUE.value,
         mgnify_database_path=expand_path(_MGNIFY_DATABASE_PATH.value),
+        mgnify_z_value=_MGNIFY_Z_VALUE.value,
         uniprot_cluster_annot_database_path=expand_path(
             _UNIPROT_CLUSTER_ANNOT_DATABASE_PATH.value
         ),
+        uniprot_cluster_annot_z_value=_UNIPROT_CLUSTER_ANNOT_Z_VALUE.value,
         uniref90_database_path=expand_path(_UNIREF90_DATABASE_PATH.value),
+        uniref90_z_value=_UNIREF90_Z_VALUE.value,
         ntrna_database_path=expand_path(_NTRNA_DATABASE_PATH.value),
+        ntrna_z_value=_NTRNA_Z_VALUE.value,
         rfam_database_path=expand_path(_RFAM_DATABASE_PATH.value),
+        rfam_z_value=_RFAM_Z_VALUE.value,
         rna_central_database_path=expand_path(_RNA_CENTRAL_DATABASE_PATH.value),
+        rna_central_z_value=_RNA_CENTRAL_Z_VALUE.value,
         pdb_database_path=expand_path(_PDB_DATABASE_PATH.value),
         seqres_database_path=expand_path(_SEQRES_DATABASE_PATH.value),
         jackhmmer_n_cpu=_JACKHMMER_N_CPU.value,
+        jackhmmer_max_parallel_shards=_JACKHMMER_MAX_PARALLEL_SHARDS.value,
         nhmmer_n_cpu=_NHMMER_N_CPU.value,
+        nhmmer_max_parallel_shards=_NHMMER_MAX_PARALLEL_SHARDS.value,
         max_template_date=max_template_date,
     )
   else:
