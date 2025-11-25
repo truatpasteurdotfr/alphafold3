@@ -41,6 +41,7 @@ from alphafold3.constants import chemical_components
 import alphafold3.cpp
 from alphafold3.data import featurisation
 from alphafold3.data import pipeline
+from alphafold3.data.tools import shards
 from alphafold3.jax.attention import attention
 from alphafold3.model import features
 from alphafold3.model import model
@@ -667,7 +668,11 @@ def replace_db_dir(path_with_db_dir: str, db_dirs: Sequence[str]) -> str:
     raise FileNotFoundError(
         f'{path_with_db_dir} with ${{DB_DIR}} not found in any of {db_dirs}.'
     )
-  if not os.path.exists(path_with_db_dir):
+  if (sharded_paths := shards.get_sharded_paths(path_with_db_dir)) is not None:
+    db_exists = all(os.path.exists(p) for p in sharded_paths)
+  else:
+    db_exists = os.path.exists(path_with_db_dir)
+  if not db_exists:
     raise FileNotFoundError(f'{path_with_db_dir} does not exist.')
   return path_with_db_dir
 
