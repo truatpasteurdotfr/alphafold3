@@ -42,7 +42,6 @@ import alphafold3.cpp
 from alphafold3.data import featurisation
 from alphafold3.data import pipeline
 from alphafold3.data.tools import shards
-from alphafold3.jax.attention import attention
 from alphafold3.model import features
 from alphafold3.model import model
 from alphafold3.model import params
@@ -52,6 +51,7 @@ import haiku as hk
 import jax
 from jax import numpy as jnp
 import numpy as np
+import tokamax
 
 
 _HOME_DIR = pathlib.Path(os.environ.get('HOME'))
@@ -373,7 +373,7 @@ _FORCE_OUTPUT_DIR = flags.DEFINE_bool(
 
 def make_model_config(
     *,
-    flash_attention_implementation: attention.Implementation = 'triton',
+    flash_attention_implementation: tokamax.DotProductAttentionImplementation = 'triton',
     num_diffusion_samples: int = 5,
     num_recycles: int = 10,
     return_embeddings: bool = False,
@@ -935,7 +935,8 @@ def main(_):
     model_runner = ModelRunner(
         config=make_model_config(
             flash_attention_implementation=typing.cast(
-                attention.Implementation, _FLASH_ATTENTION_IMPLEMENTATION.value
+                tokamax.DotProductAttentionImplementation,
+                _FLASH_ATTENTION_IMPLEMENTATION.value,
             ),
             num_diffusion_samples=_NUM_DIFFUSION_SAMPLES.value,
             num_recycles=_NUM_RECYCLES.value,
