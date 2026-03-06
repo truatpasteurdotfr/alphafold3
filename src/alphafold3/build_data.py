@@ -32,7 +32,11 @@ def build_data():
         cif_path = path
         break
     else:
-      raise ValueError('Could not find components.cif')
+      raise ValueError(
+          'Could not find components.cif. If libcifpp is installed in a'
+          ' non-standard location, please set the LIBCIFPP_DATA_DIR environment'
+          ' variable to the directory where libcifpp is installed.'
+      )
 
   out_root = resources.files(alphafold3.constants.converters)
   ccd_pickle_path = out_root.joinpath('ccd.pickle')
