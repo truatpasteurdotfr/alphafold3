@@ -299,12 +299,14 @@ def _merge_jackhmmer_results(
         # Skip sequences for which we don't have tbl information.
         yield sequence, description, tbl_info, name
 
-  def sort_key(seq_data: tuple[str, str, str, str]) -> tuple[float, str]:
+  def sort_key(seq_data: tuple[str, str, str, str]) -> tuple[float, float, str]:
     unused_seq, unused_description, tbl_info, name = seq_data
     # Tblout lines have 19 whitespace delimited columns. "-" used if no value
-    # present. We want e-value in column with index 4, so do only 5 splits.
-    # Use the name in case of a e-value tie.
-    return float(tbl_info.split(maxsplit=5)[4]), name
+    # present. We want e-value (column 5) and bit score (column 6), so do only 6
+    # splits. E-value and bit score are equivalent, but bit score might have
+    # higher resolution. Use the name in case of a tie.
+    e_value, bit_score = tbl_info.split(maxsplit=6)[4:6]
+    return float(e_value), -float(bit_score), name
 
   # A3M/TBL is sorted by e-value and name, hence we can merge them efficiently.
   merged_a3m_and_tblout = heapq.merge(
