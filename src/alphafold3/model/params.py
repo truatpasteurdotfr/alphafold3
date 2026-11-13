@@ -32,6 +32,7 @@ from typing import IO
 
 from etils import epath
 import haiku as hk
+import jax
 import jax.numpy as jnp
 import numpy as np
 import zstandard
@@ -79,7 +80,9 @@ def _read_record(stream: IO[bytes]) -> tuple[str, str, np.ndarray] | None:
   scope = scope.decode('utf-8')
   name = name.decode('utf-8')
   dtype = dtype.decode('utf-8')
-  arr = np.frombuffer(payload[-arr_buffer_len:], dtype=dtype)
+  arr = np.frombuffer(
+      payload, dtype=dtype, offset=len(payload) - arr_buffer_len
+  )
   arr = np.reshape(arr, shape)
   if sys.byteorder == 'big':
     arr = arr.byteswap()
@@ -139,7 +142,7 @@ class _MultiFileIO(io.RawIOBase):
       case os.SEEK_CUR:
         pos += self._abspos
       case os.SEEK_END:
-        pos = self._length - pos
+        pos += self._length
       case _:
         raise ValueError(f'Invalid whence: {whence}')
     self._abspos = pos
@@ -152,7 +155,7 @@ class _MultiFileIO(io.RawIOBase):
       file_handle = self._handles[self._relpos[0]]
       file_handle.seek(self._relpos[1])
       if hasattr(file_handle, 'readinto'):
-        count = file_handle.readinto(mem)  # pyrefly: ignore[missing-attribute]
+        count = file_handle.readinto(mem)
       else:
         # Workaround for file providers that do not support readinto.
         data = file_handle.read(len(mem))
@@ -204,7 +207,7 @@ def select_model_files(
       (r'(?P<model_name>.*)\.[0-9]+\.bin\.zst$', True),
       (r'(?P<model_name>.*)\.bin\.zst\.[0-9]+$', True),
       (r'(?P<model_name>.*)\.[0-9]+\.bin$', False),
-      (r'(?P<model_name>.*)\.bin]\.[0-9]+$', False),
+      (r'(?P<model_name>.*)\.bin\.[0-9]+$', False),
       (r'(?P<model_name>.*)\.bin\.zst$', True),
       (r'(?P<model_name>.*)\.bin$', False),
   ):
@@ -223,7 +226,7 @@ def select_model_files(
 
 def get_model_haiku_params(model_dir: epath.PathLike) -> hk.Params:
   """Get the Haiku parameters from a model name."""
-  params: dict[str, dict[str, jnp.Array]] = {}
+  params: dict[str, dict[str, jax.Array]] = {}
   model_files, is_compressed = select_model_files(model_dir)
   with open_for_reading(model_files, is_compressed) as stream:  # pyrefly: ignore[bad-argument-type]
     for scope, name, arr in read_records(stream):

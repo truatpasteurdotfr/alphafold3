@@ -17,14 +17,15 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
 
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "alphafold3/structure/cpp/mmcif_layout.h"
 
@@ -46,7 +47,7 @@ namespace alphafold3 {
 // comp_ids from '_atom_site.label_comp_id'.
 // alt_ids from '_atom_site.label_alt_id'.
 // occupancies from '_atom_site.occupancy'.
-std::vector<std::uint64_t> ResolveMmcifAltLocs(
+absl::StatusOr<std::vector<std::uint64_t>> ResolveMmcifAltLocs(
     const MmcifLayout& layout, absl::Span<const std::string> comp_ids,
     absl::Span<const std::string> atom_ids,
     absl::Span<const std::string> alt_ids,
@@ -55,4 +56,4 @@ std::vector<std::uint64_t> ResolveMmcifAltLocs(
 
 }  // namespace alphafold3
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
